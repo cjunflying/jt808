@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-3.0.xsd 
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-3.0.xsd"
+	default-lazy-init="false" default-autowire="byType">
+
+	<!-- Druid和Spring关联监控配置 -->
+	
+	<bean id="druid-stat-interceptor" class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor"/>
+	
+	<!-- 按类型拦截:所有IService的派生类被拦截监控 start -->
+	<!-- 
+	<bean id="druid-type-proxyCreator" class="com.alibaba.druid.support.spring.stat.BeanTypeAutoProxyCreator">
+		<property name="targetBeanType" value="com.mortals.framework.service.IService" />
+		<property name="interceptorNames">
+			<list>
+				<value>druid-stat-interceptor</value>
+			</list>
+		</property>
+	</bean>
+	 -->
+	<!-- 按类型拦截:所有IService的派生类被拦截监控 end -->
+	<!-- 方法名正则匹配拦截配置 start -->
+	
+	<bean id="druid-stat-pointcut" class="org.springframework.aop.support.JdkRegexpMethodPointcut" scope="prototype">
+		<property name="patterns">
+			<list>
+				<value>com.mortals.*.service.*</value>
+				<value>com.mortals.*.dao.*</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- proxy-target-class=true：spring监控中显示为实现类；false：显示为接口 -->
+	
+	<aop:config proxy-target-class="true">
+		<aop:advisor advice-ref="druid-stat-interceptor" pointcut-ref="druid-stat-pointcut" />
+	</aop:config>
+	
+ 	<!-- 方法名正则匹配拦截配置 end -->
+
+</beans>
